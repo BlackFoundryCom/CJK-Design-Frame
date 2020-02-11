@@ -106,7 +106,8 @@ class Controller:
     def buttonStartCallback(self, sender):
         if getExtensionDefault(toggleCJKDesignFrame) == True:
             self.observer(True)
-            self.window.removeGlyphEditorSubview(self.view)
+            try:self.window.removeGlyphEditorSubview(self.view)
+            except:pass
             setExtensionDefault(toggleCJKDesignFrame, False)
             removeObserver(self, "glyphAdditionContextualMenuItems")
         else:
