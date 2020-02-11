@@ -243,7 +243,7 @@ class DesignFrameSettings:
             formatter = numberFormatter,
             sizeStyle = "small"
             )
-        self.w.EM_DimensionYEditText.getNSTextField().setFocusRingType_(1)
+        self.w.characterFaceEditText.getNSTextField().setFocusRingType_(1)
 
         y += 30
         self.w.overshootTitle = TextBox(
@@ -259,7 +259,7 @@ class DesignFrameSettings:
             formatter = numberFormatter,
             sizeStyle = "small"
             )
-        self.w.EM_DimensionYEditText.getNSTextField().setFocusRingType_(1)
+        self.w.overshootOutEditText.getNSTextField().setFocusRingType_(1)
 
         self.w.overshootInEditText = EditText(
             (210, y, 60, 20),
@@ -268,7 +268,7 @@ class DesignFrameSettings:
             formatter = numberFormatter,
             sizeStyle = "small"
             )
-        self.w.EM_DimensionYEditText.getNSTextField().setFocusRingType_(1)
+        self.w.overshootInEditText.getNSTextField().setFocusRingType_(1)
 
         y += 30
         self.w.horizontaleLineTitle = TextBox(
@@ -391,15 +391,17 @@ class DesignFrameSettings:
             horizontaleLine = int(self.w.horizontaleLineEditText.get())
             verticalLine = int(self.w.verticaleLineEditText.get())
             customsFrames = self.w.customsFramesList.get()
+            customsFrames = [{"Name":e["Name"], "Value":int(e["Value"])} for e in customsFrames]
             lib = {
                 "em_Dimension":[x, y],
                 "characterFace":charface,
                 "overshoot":[overshootOut, overshootIn],
                 "horizontalLine":horizontaleLine,
                 "verticalLine":verticalLine,
-                "customsFrames":[{str(k):int(v) for k, v in e.items()} for e in customsFrames]
+                "customsFrames":customsFrames
                 }
             self.controller.designFrame.set(lib)
+            self.controller.currentFont.lib["CJKDesignFrameSettings"] = self.controller.designFrame.get()
         except: pass
 
     def setUI(self):
