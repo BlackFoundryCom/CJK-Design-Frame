@@ -80,6 +80,24 @@ class Controller:
             )
         toolbarItems.insert(index, newItem)
 
+    def opaque(self):
+        return False
+
+    def acceptsFirstResponder(self):
+        return False
+
+    def acceptsMouseMoved(self):
+        return True
+
+    def becomeFirstResponder(self):
+        return False
+
+    def resignFirstResponder(self):
+        return False
+
+    def shouldDrawBackground(self):
+        return False
+
     @property
     def window(self):
         return CurrentGlyphWindow()
@@ -364,13 +382,13 @@ class DesignFrameSettings:
     @refreshGlyphView
     def callback(self, sender):
         try:
-            x = self.w.EM_DimensionXEditText.get()
-            y = self.w.EM_DimensionYEditText.get()
-            charface = self.w.characterFaceEditText.get()
-            overshootIn = self.w.overshootInEditText.get()
-            overshootOut = self.w.overshootOutEditText.get()
-            horizontaleLine = self.w.horizontaleLineEditText.get()
-            verticalLine = self.w.verticaleLineEditText.get()
+            x = int(self.w.EM_DimensionXEditText.get())
+            y = int(self.w.EM_DimensionYEditText.get())
+            charface = int(self.w.characterFaceEditText.get())
+            overshootIn = int(self.w.overshootInEditText.get())
+            overshootOut = int(self.w.overshootOutEditText.get())
+            horizontaleLine = int(self.w.horizontaleLineEditText.get())
+            verticalLine = int(self.w.verticaleLineEditText.get())
             customsFrames = self.w.customsFramesList.get()
             lib = {
                 "em_Dimension":[x, y],
@@ -378,20 +396,20 @@ class DesignFrameSettings:
                 "overshoot":[overshootOut, overshootIn],
                 "horizontalLine":horizontaleLine,
                 "verticalLine":verticalLine,
-                "customsFrames":[{str(k):v for k, v in e.items()} for e in customsFrames]
+                "customsFrames":[{str(k):int(v) for k, v in e.items()} for e in customsFrames]
                 }
             self.controller.designFrame.set(lib)
         except: pass
 
     def setUI(self):
         lib = self.controller.designFrame.get()
-        self.w.EM_DimensionXEditText.set(lib.get("em_Dimension", list())[0])
-        self.w.EM_DimensionYEditText.set(lib.get("em_Dimension", list())[1])
-        self.w.characterFaceEditText.set(lib.get("characterFace", int())) 
-        self.w.overshootInEditText.set(lib.get("overshoot", list())[1])
-        self.w.overshootOutEditText.set(lib.get("overshoot", list())[0])
-        self.w.horizontaleLineEditText.set(lib.get("horizontalLine", int()))
-        self.w.verticaleLineEditText.set(lib.get("verticalLine", int()))
+        self.w.EM_DimensionXEditText.set(int(lib.get("em_Dimension", list())[0]))
+        self.w.EM_DimensionYEditText.set(int(lib.get("em_Dimension", list())[1]))
+        self.w.characterFaceEditText.set(int(lib.get("characterFace", int())))
+        self.w.overshootInEditText.set(int(lib.get("overshoot", list())[1]))
+        self.w.overshootOutEditText.set(int(lib.get("overshoot", list())[0]))
+        self.w.horizontaleLineEditText.set(int(lib.get("horizontalLine", int())))
+        self.w.verticaleLineEditText.set(int(lib.get("verticalLine", int())))
         self.w.customsFramesList.set(lib.get("customsFrames", list()))
 
 class DesignFrame:
