@@ -168,9 +168,9 @@ class Controller:
     @refreshGlyphView
     def currentGlyphChanged(self, info): 
         currentGlyph = CurrentGlyph()
+        if currentGlyph is None: return
         if self.currentGlyph.name == currentGlyph.name: return
         self.currentGlyph = currentGlyph
-        if self.currentGlyph is None: return
         self.addSubView()
 
     @refreshGlyphView
