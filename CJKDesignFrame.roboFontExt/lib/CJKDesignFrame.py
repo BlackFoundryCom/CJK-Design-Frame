@@ -42,6 +42,7 @@ class Controller:
     base_path = os.path.dirname(__file__)
 
     def __init__(self):
+        self.observers = False
         addObserver(self, "buttonToolBar", "glyphWindowWillShowToolbarItems")
         self.drawer = DesignFrameDrawer(self)
         self.designFrame = DesignFrame()
@@ -105,7 +106,7 @@ class Controller:
     @refreshGlyphView
     def buttonStartCallback(self, sender):
         if getExtensionDefault(toggleCJKDesignFrame) == True:
-            self.observer(True)
+            self.toggleObserver(True)
             try:self.window.removeGlyphEditorSubview(self.view)
             except:pass
             setExtensionDefault(toggleCJKDesignFrame, False)
@@ -115,10 +116,9 @@ class Controller:
                 self.window.addGlyphEditorSubview(self.view)
             self.currentGlyph = CurrentGlyph()
             self.setFont()
-            self.observer()
+            self.toggleObserver()
             removeObserver(self, "glyphAdditionContextualMenuItems")
             if not self.currentFont.lib.get('CJKDesignFrameSettings', ''):
-                
                 self.currentFont.lib["CJKDesignFrameSettings"] = self.designFrame.get()
                 self.openDesignFrameSettings(None)
             addObserver(self, "glyphMenuItems", "glyphAdditionContextualMenuItems")
@@ -132,23 +132,23 @@ class Controller:
 
     def addSubView(self):
         if self.window is None: 
-            self.observer(True)
+            self.toggleObserver(True)
             return
         self.window.addGlyphEditorSubview(self.view)
         self.view.show(True)
-        self.observer()
 
-    def observer(self, remove: bool = False):
-        if not remove:
+    def toggleObserver(self, remove=False):
+        if self.observers or remove:
+            removeObserver(self, 'currentGlyphChanged')
+            removeObserver(self, 'drawPreview')
+            removeObserver(self, 'draw')
+            removeObserver(self, 'fontBecameCurrent')
+        else:
             addObserver(self, 'currentGlyphChanged', 'currentGlyphChanged')
             addObserver(self, 'glyphWindowDraw', 'draw')
             addObserver(self, 'glyphWindowDraw', 'drawPreview')
             addObserver(self, "updateFont", "fontBecameCurrent")
-            return
-        removeObserver(self, 'currentGlyphChanged')
-        removeObserver(self, 'drawPreview')
-        removeObserver(self, 'draw')
-        removeObserver(self, 'fontBecameCurrent')
+        self.observers = not self.observers
 
     def glyphMenuItems(self, info):
         menuItems = []
