@@ -43,6 +43,7 @@ class Controller:
 
     def __init__(self):
         self.observers = False
+        self.currentGlyph = None
         addObserver(self, "buttonToolBar", "glyphWindowWillShowToolbarItems")
         self.drawer = DesignFrameDrawer(self)
         self.designFrame = DesignFrame()
@@ -106,7 +107,6 @@ class Controller:
     @refreshGlyphView
     def buttonStartCallback(self, sender):
         if getExtensionDefault(toggleCJKDesignFrame) == True:
-            self.toggleObserver(True)
             try:self.window.removeGlyphEditorSubview(self.view)
             except:pass
             setExtensionDefault(toggleCJKDesignFrame, False)
@@ -116,7 +116,7 @@ class Controller:
                 self.window.addGlyphEditorSubview(self.view)
             self.currentGlyph = CurrentGlyph()
             self.setFont()
-            self.toggleObserver()
+            
             removeObserver(self, "glyphAdditionContextualMenuItems")
             if not self.currentFont.lib.get('CJKDesignFrameSettings', ''):
                 self.currentFont.lib["CJKDesignFrameSettings"] = self.designFrame.get()
@@ -124,6 +124,7 @@ class Controller:
             addObserver(self, "glyphMenuItems", "glyphAdditionContextualMenuItems")
             self.view.show(True)
             setExtensionDefault(toggleCJKDesignFrame, True)
+        self.toggleObserver()
 
     def setFont(self):
         self.currentFont = CurrentFont()
