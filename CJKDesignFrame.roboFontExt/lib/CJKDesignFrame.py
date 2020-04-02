@@ -765,8 +765,8 @@ class DesignFrameDrawer:
                 width = w * .5 + ratio
                 self._makeVerSecLine(RGlyph(), x + translate_secondLine_X, 0, width + translate_secondLine_X, h)
             else:
-                self._makeHorGrid(RGlyph(), *frame, step = self.controller.designFrame.horizontalLine)
-                self._makeVerGrid(RGlyph(), *frame, step = self.controller.designFrame.verticalLine)
+                self._makeHorGrid(RGlyph(), *frame, step = int(self.controller.designFrame.horizontalLine))
+                self._makeVerGrid(RGlyph(), *frame, step = int(self.controller.designFrame.verticalLine))
         
         if self.customsFrames:
             fill(None)
