@@ -29,7 +29,7 @@ from vanilla.dialogs            import putFile, getFile
 import json
 import os
 
-toggleCJKDesignFrame = "com.black-foundry.toggleCJKDesignFrame"
+# toggleCJKDesignFrame = "com.black-foundry.toggleCJKDesignFrame"
 
 def refreshGlyphView(func):
     def wrapper(self, *args, **kwargs):
@@ -46,7 +46,8 @@ class Controller:
         self.currentGlyph = None
         addObserver(self, "buttonToolBar", "glyphWindowWillShowToolbarItems")
         self.drawer = DesignFrameDrawer(self)
-        self.designFrame = DesignFrame()
+        self.designFrame = HanDesignFrame()
+        self.toggleCJKDesignFrame = False
         self.view = ViewCanvas(
             self, 
             posSize = (20, 20, 100, 65),
@@ -106,11 +107,12 @@ class Controller:
     
     @refreshGlyphView
     def buttonStartCallback(self, sender):
-        if getExtensionDefault(toggleCJKDesignFrame) == True:
+        if self.toggleCJKDesignFrame == True:
             try:self.window.removeGlyphEditorSubview(self.view)
             except:pass
-            setExtensionDefault(toggleCJKDesignFrame, False)
+            self.toggleCJKDesignFrame = False
             removeObserver(self, "glyphAdditionContextualMenuItems")
+            self.toggleObserver(True)
         else:
             if self.window:
                 self.window.addGlyphEditorSubview(self.view)
@@ -123,8 +125,8 @@ class Controller:
                 self.openDesignFrameSettings(None)
             addObserver(self, "glyphMenuItems", "glyphAdditionContextualMenuItems")
             self.view.show(True)
-            setExtensionDefault(toggleCJKDesignFrame, True)
-        self.toggleObserver()
+            self.toggleCJKDesignFrame = True
+            self.toggleObserver()
 
     def setFont(self):
         self.currentFont = CurrentFont()
@@ -144,12 +146,13 @@ class Controller:
             removeObserver(self, 'drawPreview')
             removeObserver(self, 'draw')
             removeObserver(self, 'fontBecameCurrent')
+            self.observers = False
         else:
             addObserver(self, 'currentGlyphChanged', 'currentGlyphChanged')
             addObserver(self, 'glyphWindowDraw', 'draw')
             addObserver(self, 'glyphWindowDraw', 'drawPreview')
             addObserver(self, "updateFont", "fontBecameCurrent")
-        self.observers = not self.observers
+            self.observers = True
 
     def glyphMenuItems(self, info):
         menuItems = []
@@ -201,7 +204,7 @@ class DesignFrameSettings:
 
     def __init__(self, controller):
         self.controller = controller
-        self.w = HUDFloatingWindow((280, 315),
+        self.w = HUDFloatingWindow((280, 345),
             "Design Frame Settings",
             )
 
@@ -272,14 +275,26 @@ class DesignFrameSettings:
         self.w.overshootInEditText.getNSTextField().setFocusRingType_(1)
 
         y += 30
-        self.w.horizontaleLineTitle = TextBox(
-            (10, y, 110, 20),
+        self.w.segmentedButton = SegmentedButton(
+            (10, y, -10, 20),
+            [dict(title = "Han"), dict(title = "Hangul")],
+            callback = self.segmentedButtonCallback
+            )
+        self.w.segmentedButton.set(self.controller.designFrame.type == 'hangul')
+        y+=30
+        self.w.han = Group((0, y, -0, 60))
+        self.w.han.show(self.controller.designFrame.type == 'han')
+        self.w.hangul = Group((0, y, -0, 60))
+        self.w.hangul.show(self.controller.designFrame.type == 'hangul')
+
+        self.w.han.horizontaleLineTitle = TextBox(
+            (10, 0, 110, 20),
             "Horizontale Line",
             sizeStyle = "small"
             )
 
-        self.w.horizontaleLineEditText = Slider(
-            (120, y, -10, 20),
+        self.w.han.horizontaleLineSlider = Slider(
+            (120, 0, -10, 20),
             minValue = 0,
             maxValue = 50,
             value = 15,
@@ -287,15 +302,14 @@ class DesignFrameSettings:
             sizeStyle = "small"
             )
 
-        y += 30
-        self.w.verticaleLineTitle = TextBox(
-            (10, y, 110, 20),
+        self.w.han.verticaleLineTitle = TextBox(
+            (10, 30, 110, 20),
             "Verticale Line",
             sizeStyle = "small"
             )
 
-        self.w.verticaleLineEditText = Slider(
-            (120, y, -10, 20),
+        self.w.han.verticaleLineSlider = Slider(
+            (120, 30, -10, 20),
             minValue = 0,
             maxValue = 50,
             value = 15,
@@ -303,7 +317,41 @@ class DesignFrameSettings:
             sizeStyle = "small"
             )
 
-        y += 30
+        self.w.hangul.horizontaleLineTitle = TextBox(
+            (10, 0, 110, 20),
+            "Horizontale Grid",
+            sizeStyle = "small"
+            )
+
+        self.w.hangul.horizontaleLineSlider = Slider(
+            (120, 0, -10, 20),
+            minValue = 1,
+            maxValue = 20,
+            value = 8,
+            tickMarkCount = 19,
+            stopOnTickMarks = True,
+            callback = self.callback,
+            sizeStyle = "small"
+            )
+
+        self.w.hangul.verticaleLineTitle = TextBox(
+            (10, 30, 110, 20),
+            "Verticale Grid",
+            sizeStyle = "small"
+            )
+
+        self.w.hangul.verticaleLineSlider = Slider(
+            (120, 30, -10, 20),
+            minValue = 1,
+            maxValue = 20,
+            value = 8,
+            tickMarkCount = 19,
+            stopOnTickMarks = True,
+            callback = self.callback,
+            sizeStyle = "small"
+            )
+
+        y += 60
         self.w.customsFrameTitle = TextBox(
             (10, y, -10, 20),
             "Customs Frames:",
@@ -364,6 +412,13 @@ class DesignFrameSettings:
         self.setUI()
 
     @refreshGlyphView
+    def segmentedButtonCallback(self, sender):
+        for i, group in enumerate([self.w.han, self.w.hangul]):
+            group.show(i == sender.get())
+            self.controller.designFrame = [HanDesignFrame, HangulDesignFrame][i]()
+            self.callback(sender)
+
+    @refreshGlyphView
     def close(self, sender: Window):
         removeObserver(self.controller, 'drawInactive')
         self.controller.currentFont.lib["CJKDesignFrameSettings"] = self.controller.designFrame.get()
@@ -389,8 +444,13 @@ class DesignFrameSettings:
             charface = int(self.w.characterFaceEditText.get())
             overshootIn = int(self.w.overshootInEditText.get())
             overshootOut = int(self.w.overshootOutEditText.get())
-            horizontaleLine = int(self.w.horizontaleLineEditText.get())
-            verticalLine = int(self.w.verticaleLineEditText.get())
+            dftype = ["han", "hangul"][int(self.w.segmentedButton.get())]
+            if dftype == 'han':
+                horizontaleLine = int(self.w.han.horizontaleLineSlider.get())
+                verticalLine = int(self.w.han.verticaleLineSlider.get())
+            else:
+                horizontaleLine = int(self.w.hangul.horizontaleLineSlider.get())
+                verticalLine = int(self.w.hangul.verticaleLineSlider.get())
             customsFrames = self.w.customsFramesList.get()
             customsFrames = [{"Name":e["Name"], "Value":int(e["Value"])} for e in customsFrames]
             lib = {
@@ -399,7 +459,8 @@ class DesignFrameSettings:
                 "overshoot":[overshootOut, overshootIn],
                 "horizontalLine":horizontaleLine,
                 "verticalLine":verticalLine,
-                "customsFrames":customsFrames
+                "customsFrames":customsFrames,
+                "type": dftype
                 }
             self.controller.designFrame.set(lib)
             self.controller.currentFont.lib["CJKDesignFrameSettings"] = self.controller.designFrame.get()
@@ -412,21 +473,25 @@ class DesignFrameSettings:
         self.w.characterFaceEditText.set(int(lib.get("characterFace", int())))
         self.w.overshootInEditText.set(int(lib.get("overshoot", list())[1]))
         self.w.overshootOutEditText.set(int(lib.get("overshoot", list())[0]))
-        self.w.horizontaleLineEditText.set(int(lib.get("horizontalLine", int())))
-        self.w.verticaleLineEditText.set(int(lib.get("verticalLine", int())))
+        if self.controller.designFrame.type == 'han':
+            self.w.han.horizontaleLineSlider.set(int(lib.get("horizontalLine", int())))
+            self.w.han.verticaleLineSlider.set(int(lib.get("verticalLine", int())))
+        else:
+            self.w.hangul.horizontaleLineSlider.set(int(lib.get("horizontalLine", int())))
+            self.w.hangul.verticaleLineSlider.set(int(lib.get("verticalLine", int())))
+        self.w.segmentedButton.set(lib.get("type", "han") == "han")
+        self.segmentedButtonCallback(self.w.segmentedButton)
         self.w.customsFramesList.set(lib.get("customsFrames", list()))
 
 class DesignFrame:
 
-    __slots__ = "em_Dimension", "characterFace", "overshoot", \
-                "horizontalLine", "verticalLine", "customsFrames"
+    # __slots__ = "em_Dimension", "characterFace", "overshoot", \
+    #             "horizontalLine", "verticalLine", "customsFrames"
 
     def __init__(self):
         self.em_Dimension = [1000, 1000]
         self.characterFace = 90
         self.overshoot = [20, 20]
-        self.horizontalLine = 15
-        self.verticalLine = 15
         self.customsFrames = []
 
     def set(self, lib: dict):
@@ -435,16 +500,33 @@ class DesignFrame:
             setattr(self, k, v)
 
     def get(self) -> dict:
-        return {e:getattr(self, e) for e in self.__slots__}
+        return vars(self)
 
     def __len__(self) -> int:
-        return len(list(filter(lambda x: getattr(self, x), self.__slots__)))
+        return len(list(filter(lambda x: getattr(self, x), vars(self))))
 
     def __str__(self) -> str:
         str = ""
-        for e in self.__slots__:
+        for e in vars(self):
             str += f"{e}:{getattr(self, e)}, "
         return str
+
+class HanDesignFrame(DesignFrame):
+
+    def __init__(self):
+        super().__init__()
+        self.horizontalLine = 15
+        self.verticalLine = 15
+        self.type = 'han'
+
+class HangulDesignFrame(DesignFrame):
+
+    def __init__(self):
+        super().__init__()
+        self.horizontalLine = 8
+        self.verticalLine = 8
+        self.type = 'hangul'
+
 
 class ViewCanvas(CanvasGroup):
 
@@ -563,6 +645,39 @@ class DesignFrameDrawer:
         glyph.round()
         drawGlyph(glyph)
 
+    def _makeHorGrid(self,
+                    glyph: RGlyph, 
+                    x: int, 
+                    y: int, 
+                    w: int,
+                    h: int,
+                    step: int):
+        pen = glyph.getPen()
+        dist = y + h / step
+        for i in range(step-1):
+            pen.moveTo((x, dist))
+            pen.lineTo((x+w, dist))
+            pen.closePath()
+            dist += h / step
+        drawGlyph(glyph)
+
+    def _makeVerGrid(self,
+                    glyph: RGlyph, 
+                    x: int, 
+                    y: int, 
+                    w: int,
+                    h: int,
+                    step: int):
+        pen = glyph.getPen()
+        dist = x + w / step
+        for i in range(step-1):
+            pen.moveTo((dist, y))
+            pen.lineTo((dist, y+h))
+            pen.closePath()
+            dist += w / step
+        drawGlyph(glyph)
+
+
     def _findProximity(self, 
             pos: list, 
             point: int, 
@@ -639,16 +754,19 @@ class DesignFrameDrawer:
         if self.secondLines:
             fill(None)
             stroke(.65, 0.16, .39, 1)
+            if self.controller.designFrame.type == "han":
+                ratio = (h * .5 * (self.controller.designFrame.horizontalLine / 50))
+                y = h * .5 - ratio
+                height = h * .5 + ratio
+                self._makeHorSecLine(RGlyph(), 0, y + translate_secondLine_Y, w, height + translate_secondLine_Y)
 
-            ratio = (h * .5 * (self.controller.designFrame.horizontalLine / 50))
-            y = h * .5 - ratio
-            height = h * .5 + ratio
-            self._makeHorSecLine(RGlyph(), 0, y + translate_secondLine_Y, w, height + translate_secondLine_Y)
-
-            ratio = (w * .5 * (self.controller.designFrame.verticalLine / 50))
-            x = w * .5 - ratio
-            width = w * .5 + ratio
-            self._makeVerSecLine(RGlyph(), x + translate_secondLine_X, 0, width + translate_secondLine_X, h)
+                ratio = (w * .5 * (self.controller.designFrame.verticalLine / 50))
+                x = w * .5 - ratio
+                width = w * .5 + ratio
+                self._makeVerSecLine(RGlyph(), x + translate_secondLine_X, 0, width + translate_secondLine_X, h)
+            else:
+                self._makeHorGrid(RGlyph(), *frame, step = self.controller.designFrame.horizontalLine)
+                self._makeVerGrid(RGlyph(), *frame, step = self.controller.designFrame.verticalLine)
         
         if self.customsFrames:
             fill(None)
