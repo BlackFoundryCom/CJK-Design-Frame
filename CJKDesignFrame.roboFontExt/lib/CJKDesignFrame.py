@@ -145,13 +145,13 @@ class Controller:
             removeObserver(self, 'currentGlyphChanged')
             removeObserver(self, 'drawPreview')
             removeObserver(self, 'draw')
-            removeObserver(self, 'fontBecameCurrent')
+            # removeObserver(self, 'fontBecameCurrent')
             self.observers = False
         else:
             addObserver(self, 'currentGlyphChanged', 'currentGlyphChanged')
             addObserver(self, 'glyphWindowDraw', 'draw')
             addObserver(self, 'glyphWindowDraw', 'drawPreview')
-            addObserver(self, "updateFont", "fontBecameCurrent")
+            # addObserver(self, "updateFont", "fontBecameCurrent")
             self.observers = True
 
     def glyphMenuItems(self, info):
@@ -177,6 +177,8 @@ class Controller:
         if self.currentGlyph.name == currentGlyph.name: return
         self.currentGlyph = currentGlyph
         self.addSubView()
+        self.toggleObserver(True)
+        self.toggleObserver()
 
     @refreshGlyphView
     def glyphWindowDidOpen(self, info):
