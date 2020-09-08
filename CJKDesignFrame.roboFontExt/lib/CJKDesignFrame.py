@@ -145,12 +145,14 @@ class Controller:
             removeObserver(self, 'currentGlyphChanged')
             removeObserver(self, 'drawPreview')
             removeObserver(self, 'draw')
+            removeObserver(self, 'drawInactive')
             # removeObserver(self, 'fontBecameCurrent')
             self.observers = False
         else:
             addObserver(self, 'currentGlyphChanged', 'currentGlyphChanged')
             addObserver(self, 'glyphWindowDraw', 'draw')
             addObserver(self, 'glyphWindowDraw', 'drawPreview')
+            addObserver(self, 'glyphWindowDraw', 'drawInactive')
             # addObserver(self, "updateFont", "fontBecameCurrent")
             self.observers = True
 
