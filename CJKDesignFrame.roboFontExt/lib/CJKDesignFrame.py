@@ -163,7 +163,7 @@ class Controller:
         info["additionContextualMenuItems"].extend(menuItems)
 
     def openDesignFrameSettings(self, sender):
-        addObserver(self, "glyphWindowDraw", "drawInactive")
+        # addObserver(self, "glyphWindowDraw", "drawInactive")
         DesignFrameSettings(self)
 
     def glyphWindowDraw(self, info):
@@ -180,6 +180,7 @@ class Controller:
         self.currentGlyph = currentGlyph
         self.addSubView()
         self.toggleObserver(True)
+        self.observers = False
         self.toggleObserver()
 
     @refreshGlyphView
@@ -419,12 +420,12 @@ class DesignFrameSettings:
     def segmentedButtonCallback(self, sender):
         for i, group in enumerate([self.w.han, self.w.hangul]):
             group.show(i == sender.get())
-            self.controller.designFrame = [HanDesignFrame, HangulDesignFrame][i]()
-            self.callback(sender)
+        self.controller.designFrame = [HanDesignFrame, HangulDesignFrame][sender.get()]()
+        self.callback(sender)
 
     @refreshGlyphView
     def close(self, sender: Window):
-        removeObserver(self.controller, 'drawInactive')
+        # removeObserver(self.controller, 'drawInactive')
         self.controller.currentFont.lib["CJKDesignFrameSettings"] = self.controller.designFrame.get()
 
     @refreshGlyphView
@@ -483,7 +484,7 @@ class DesignFrameSettings:
         else:
             self.w.hangul.horizontaleLineSlider.set(int(lib.get("horizontalLine", int())))
             self.w.hangul.verticaleLineSlider.set(int(lib.get("verticalLine", int())))
-        self.w.segmentedButton.set(lib.get("type", "han") == "han")
+        self.w.segmentedButton.set(lib.get("type", "han") != "han")
         self.segmentedButtonCallback(self.w.segmentedButton)
         self.w.customsFramesList.set(lib.get("customsFrames", list()))
 
