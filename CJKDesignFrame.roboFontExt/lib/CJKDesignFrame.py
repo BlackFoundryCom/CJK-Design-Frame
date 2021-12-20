@@ -509,8 +509,8 @@ class DesignFrameSettings:
         self.w.characterFaceEditText.set(int(lib.get("characterFace", int())))
         self.w.overshootInEditText.set(int(lib.get("overshoot", list())[1]))
         self.w.overshootOutEditText.set(int(lib.get("overshoot", list())[0]))
-        self.w.shiftXEditText.set(int(lib.get("shift", list())[1]))
-        self.w.shiftYEditText.set(int(lib.get("shift", list())[0]))
+        self.w.shiftXEditText.set(int(lib.get("shift", list())[0]))
+        self.w.shiftYEditText.set(int(lib.get("shift", list())[1]))
         if self.controller.designFrame.type == 'han':
             self.w.han.horizontaleLineSlider.set(int(lib.get("horizontalLine", int())))
             self.w.han.verticaleLineSlider.set(int(lib.get("verticalLine", int())))
