@@ -209,7 +209,7 @@ class DesignFrameSettings:
 
     def __init__(self, controller):
         self.controller = controller
-        self.w = HUDFloatingWindow((280, 345),
+        self.w = HUDFloatingWindow((280, 375),
             "Design Frame Settings",
             )
 
@@ -280,12 +280,38 @@ class DesignFrameSettings:
         self.w.overshootInEditText.getNSTextField().setFocusRingType_(1)
 
         y += 30
+        self.w.shiftTitle = TextBox(
+            (10, y, 150, 20),
+            "Shift x/y (FU)",
+            sizeStyle = "small"
+            )
+
+        self.w.shiftXEditText = EditText(
+            (140, y, 60, 20),
+            int(),
+            callback = self.callback,
+            formatter = numberFormatter,
+            sizeStyle = "small"
+            )
+        self.w.shiftXEditText.getNSTextField().setFocusRingType_(1)
+
+        self.w.shiftYEditText = EditText(
+            (210, y, 60, 20),
+            int(),
+            callback = self.callback,
+            formatter = numberFormatter,
+            sizeStyle = "small"
+            )
+        self.w.shiftYEditText.getNSTextField().setFocusRingType_(1)
+
+        y += 30
         self.w.segmentedButton = SegmentedButton(
             (10, y, -10, 20),
             [dict(title = "Han"), dict(title = "Hangul")],
             callback = self.segmentedButtonCallback
             )
         self.w.segmentedButton.set(self.controller.designFrame.type == 'hangul')
+
         y+=30
         self.w.han = Group((0, y, -0, 60))
         self.w.han.show(self.controller.designFrame.type == 'han')
@@ -449,6 +475,10 @@ class DesignFrameSettings:
             charface = int(self.w.characterFaceEditText.get())
             overshootIn = int(self.w.overshootInEditText.get())
             overshootOut = int(self.w.overshootOutEditText.get())
+
+            shiftX = int(self.w.shiftXEditText.get())
+            shiftY = int(self.w.shiftYEditText.get())
+
             dftype = ["han", "hangul"][int(self.w.segmentedButton.get())]
             if dftype == 'han':
                 horizontaleLine = int(self.w.han.horizontaleLineSlider.get())
@@ -462,6 +492,7 @@ class DesignFrameSettings:
                 "em_Dimension":[x, y],
                 "characterFace":charface,
                 "overshoot":[overshootOut, overshootIn],
+                "shift":[shiftX, shiftY],
                 "horizontalLine":horizontaleLine,
                 "verticalLine":verticalLine,
                 "customsFrames":customsFrames,
@@ -478,6 +509,8 @@ class DesignFrameSettings:
         self.w.characterFaceEditText.set(int(lib.get("characterFace", int())))
         self.w.overshootInEditText.set(int(lib.get("overshoot", list())[1]))
         self.w.overshootOutEditText.set(int(lib.get("overshoot", list())[0]))
+        self.w.shiftXEditText.set(int(lib.get("shift", list())[1]))
+        self.w.shiftYEditText.set(int(lib.get("shift", list())[0]))
         if self.controller.designFrame.type == 'han':
             self.w.han.horizontaleLineSlider.set(int(lib.get("horizontalLine", int())))
             self.w.han.verticaleLineSlider.set(int(lib.get("verticalLine", int())))
@@ -497,6 +530,7 @@ class DesignFrame:
         self.em_Dimension = [1000, 1000]
         self.characterFace = 90
         self.overshoot = [20, 20]
+        self.shift = [0, 0]
         self.customsFrames = []
 
     def set(self, lib: dict):
@@ -711,8 +745,8 @@ class DesignFrameDrawer:
         stroke(0, 0, 0, 1)
         x, y = 0, 0
         w, h = self.controller.designFrame.em_Dimension
-        translateY = -12 * h / 100
-        translate(0,translateY)
+        translateX, translateY = self.controller.designFrame.shift
+        translate(translateX,translateY)
 
         if mainFrames:
             rect(x, y, w, h)
