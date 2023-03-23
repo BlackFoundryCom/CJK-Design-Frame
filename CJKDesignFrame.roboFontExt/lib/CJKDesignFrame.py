@@ -37,7 +37,7 @@ def refreshGlyphView(func):
         UpdateCurrentGlyphView()
     return wrapper
 
-class Controller:
+class DesignFrameController:
 
     base_path = os.path.dirname(__file__)
 
@@ -684,6 +684,21 @@ class DesignFrameDrawer:
         glyph.round()
         drawGlyph(glyph)
 
+    def _makeSquare(self, 
+            glyph: RGlyph, 
+            origin_x: int, 
+            origin_y: int, 
+            width: int, 
+            height: int):
+        pen = glyph.getPen()
+        pen.moveTo((origin_x, origin_y))
+        pen.lineTo((origin_x, origin_y + height))
+        pen.lineTo((origin_x+width, origin_y + height))
+        pen.lineTo((origin_x+width, origin_y))
+        pen.closePath()
+        glyph.round()
+        drawGlyph(glyph)
+
     def _makeHorGrid(self,
                     glyph: RGlyph, 
                     x: int, 
@@ -749,15 +764,18 @@ class DesignFrameDrawer:
         translate(translateX,translateY)
 
         if mainFrames:
-            rect(x, y, w, h)
+            self.controller.main_frame_glyph = RGlyph()
+            self._makeSquare(self.controller.main_frame_glyph, x, y, w, h)
 
             frame = self._getEmRatioFrame(self.controller.designFrame.characterFace, w, h)
-            rect(*frame)
+            self.controller.frame_glyph = RGlyph()
+            self._makeSquare(self.controller.frame_glyph, *frame)
             stroke(None)
             fill(0,.75,1,.3)
 
             outside, inside = self.controller.designFrame.overshoot
-            self._makeOvershoot(RGlyph(), *frame, *self.controller.designFrame.overshoot)
+            self.controller.overshoot_glyph = RGlyph()
+            self._makeOvershoot(self.controller.overshoot_glyph, *frame, *self.controller.designFrame.overshoot)
 
             g = glyph
             if proximityPoints and g is not None:
@@ -797,15 +815,19 @@ class DesignFrameDrawer:
                 ratio = (h * .5 * (self.controller.designFrame.horizontalLine / 50))
                 y = h * .5 - ratio
                 height = h * .5 + ratio
-                self._makeHorSecLine(RGlyph(), 0, y + translate_secondLine_Y, w, height + translate_secondLine_Y)
+                self.controller.horizontal_second_line_glyph = RGlyph()
+                self._makeHorSecLine(self.controller.horizontal_second_line_glyph, 0, y + translate_secondLine_Y, w, height + translate_secondLine_Y)
 
                 ratio = (w * .5 * (self.controller.designFrame.verticalLine / 50))
                 x = w * .5 - ratio
                 width = w * .5 + ratio
-                self._makeVerSecLine(RGlyph(), x + translate_secondLine_X, 0, width + translate_secondLine_X, h)
+                self.controller.vertical_second_line_glyph = RGlyph()
+                self._makeVerSecLine(self.controller.vertical_second_line_glyph, x + translate_secondLine_X, 0, width + translate_secondLine_X, h)
             else:
-                self._makeHorGrid(RGlyph(), *frame, step = int(self.controller.designFrame.horizontalLine))
-                self._makeVerGrid(RGlyph(), *frame, step = int(self.controller.designFrame.verticalLine))
+                self.controller.horizontal_gride_glyph = RGlyph()
+                self._makeHorGrid(self.controller.controller.horizontal_gride_glyph, *frame, step = int(self.controller.designFrame.horizontalLine))
+                self.controller.vertical_gride_glyph = RGlyph()
+                self._makeVerGrid(self.controller.controller.vertical_gride_glyph, *frame, step = int(self.controller.designFrame.verticalLine))
         
         if self.customsFrames:
             fill(None)
@@ -817,4 +839,4 @@ class DesignFrameDrawer:
         restore()
 
 if __name__ == "__main__":
-    Controller()
+    DesignFrameController()
