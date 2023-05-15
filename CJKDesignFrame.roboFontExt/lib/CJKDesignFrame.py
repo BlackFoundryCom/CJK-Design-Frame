@@ -825,9 +825,9 @@ class DesignFrameDrawer:
                 self._makeVerSecLine(self.controller.vertical_second_line_glyph, x + translate_secondLine_X, 0, width + translate_secondLine_X, h)
             else:
                 self.controller.horizontal_gride_glyph = RGlyph()
-                self._makeHorGrid(self.controller.controller.horizontal_gride_glyph, *frame, step = int(self.controller.designFrame.horizontalLine))
+                self._makeHorGrid(self.controller.horizontal_gride_glyph, *frame, step = int(self.controller.designFrame.horizontalLine))
                 self.controller.vertical_gride_glyph = RGlyph()
-                self._makeVerGrid(self.controller.controller.vertical_gride_glyph, *frame, step = int(self.controller.designFrame.verticalLine))
+                self._makeVerGrid(self.controller.vertical_gride_glyph, *frame, step = int(self.controller.designFrame.verticalLine))
         
         if self.customsFrames:
             fill(None)
